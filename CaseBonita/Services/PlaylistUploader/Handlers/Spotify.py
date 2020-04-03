@@ -1,3 +1,5 @@
+import spotipy
+
 class SpotifyUploader:
 
     def __init__(self, service, name, user_id):
