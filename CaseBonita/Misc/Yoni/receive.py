@@ -1,19 +1,23 @@
 #!/usr/bin/env python
-import pika
+from CaseBonita.Infrastructure.Consts import RABBIT_MQ_HOST
+from CaseBonita.Infrastructure.Messaging.Factory import ChannelFactory, QueueFactory
 
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='localhost'))
-channel = connection.channel()
+if __name__ == '__main__':
+    channel = ChannelFactory.get_channel(host=RABBIT_MQ_HOST)
+    queue_name = 'test_queue'
+    exchange_name = 'try'
+    routing_key = 'all.me'
+    exchange_type = 'topic'
+    channel.decalre_queue(queue_name=queue_name)
+    channel.declare_exchange(exchange_name=exchange_name,
+                             exchange_type=exchange_type)
+    channel.bind_queue(exchange_name=exchange_name, queue_name=queue_name,
+                       binding_key=routing_key)
+    queue = QueueFactory.get_queue(queue_name,
+                           channel)
 
-channel.queue_declare(queue='hello')
 
+    def callback(ch, method, properties, body):
+        print(" [x] %r:%r" % (method.routing_key, body))
 
-def callback(ch, method, properties, body):
-    print(" [x] Received %r" % body)
-
-
-channel.basic_consume(
-    queue='hello', on_message_callback=callback, auto_ack=True)
-
-print(' [*] Waiting for messages. To exit press CTRL+C')
-channel.start_consuming()
+    queue.consume(callback=callback)

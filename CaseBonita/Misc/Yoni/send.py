@@ -1,12 +1,16 @@
-#!/usr/bin/env python
-import pika
+from CaseBonita.Infrastructure.Consts import RABBIT_MQ_HOST
+from CaseBonita.Infrastructure.Messaging.Factory import ChannelFactory, TopicFactory
 
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='localhost'))
-channel = connection.channel()
-
-channel.queue_declare(queue='hello')
-
-channel.basic_publish(exchange='', routing_key='hello', body='Hello World!')
-print(" [x] Sent 'Hello World!'")
-connection.close()
+if __name__ == '__main__':
+    channel = ChannelFactory.get_channel(host=RABBIT_MQ_HOST)
+    queue_name = 'test_queue'
+    exchange_name = 'try'
+    routing_key = 'all.me'
+    exchange_type = 'topic'
+    channel.decalre_queue(queue_name=queue_name)
+    channel.declare_exchange(exchange_name=exchange_name,
+                         exchange_type=exchange_type)
+    channel.bind_queue(exchange_name=exchange_name, queue_name=queue_name,
+                       binding_key=routing_key)
+    topic = TopicFactory.get_topic(channel, exchange_name, routing_key=routing_key)
+    topic.publish('Test Success!')
