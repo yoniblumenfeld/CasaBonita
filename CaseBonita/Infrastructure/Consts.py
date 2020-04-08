@@ -1,0 +1,1 @@
+RABBIT_MQ_HOST = 'localhost'
