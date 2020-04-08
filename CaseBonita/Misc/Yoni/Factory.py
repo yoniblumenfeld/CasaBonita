@@ -24,21 +24,7 @@ class Connection(object):
         return self._connection
 
 
-class ConnectionFactory(object):
-    connections_cache = {}
-
-    @classmethod
-    def get_connection(cls, host=RABBIT_MQ_HOST):
-        if host in cls.connections_cache:
-            return cls.connections_cache[host]
-        connection = Connection(host)
-        cls.connections_cache[host] = connection()
-        return cls.connections_cache[host]
-
-
 class Channel(object):
-    _channel = None
-
     def _is_channel_active(self):
         if self._channel is None:
             return False
@@ -49,12 +35,13 @@ class Channel(object):
     def channel(self):
         if self._is_channel_active():
             return self._channel
-        connection = self._connection
+        connection = self._connection()
         self._channel = connection.channel()
         return self._channel
 
     def __init__(self, connection):
         self._connection = connection
+        self._channel = None
 
     def __call__(self, *args, **kwargs):
         return self.channel
@@ -81,18 +68,36 @@ class ChannelFactory(object):
     channels_cache = {}
 
     @classmethod
-    def get_channel(cls, host):
-        if host in cls.channels_cache:
-            return cls.channels_cache[host]
-        connection = ConnectionFactory.get_connection(host)
-        channel = Channel(connection)
-        cls.channels_cache[host] = channel
-        return cls.channels_cache[host]
+    def get_channel_identifier(cls, entity_name, host):
+        return f'{host}.{entity_name}'
+
+    @classmethod
+    def get_channel(cls, channel_id):
+        if channel_id in cls.channels_cache:
+            return cls.channels_cache[channel_id]
+        raise KeyError('No such channel')
+
+
+class ConnectionFactory(object):
+    connections_cache = {}
+
+    @classmethod
+    def get_connection_identifier(cls, host):
+        return host
+
+    @classmethod
+    def get_connection(cls, connection_id):
+        if connection_id in cls.connections_cache:
+            print('taking connection from cache')
+            return cls.connections_cache[connection_id]
+        raise KeyError('No such connection')
+
+
 
 
 class Queue(object):
     def __init__(self, channel, queue_name):
-        self._channel = channel()
+        self._channel = channel
         self._queue_name = queue_name
 
     def consume(self, callback):
@@ -106,9 +111,11 @@ class QueueFactory(object):
     queues_cache = {}
 
     @classmethod
-    def get_queue(cls, queue_name, channel):
+    def get_queue(cls, queue_name, channel=None):
         if queue_name in cls.queues_cache:
             return cls.queues_cache[queue_name]
+        if channel is None:
+            raise ConnectionError('if no queue in cache must pass channel')
         cls.queues_cache[queue_name] = Queue(channel, queue_name)
         return cls.queues_cache[queue_name]
 
@@ -130,14 +137,21 @@ class TopicFactory(object):
     topic_cache = {}
 
     @classmethod
-    def _get_topic_id(cls, exchange_name, routing_key):
+    def get_topic_id(cls, exchange_name, routing_key):
         return f'{exchange_name}.{routing_key}'
 
     @classmethod
-    def get_topic(cls, channel, exchange_name, routing_key):
-        _id = cls._get_topic_id(exchange_name, routing_key)
-        if _id in cls.topic_cache:
-            return cls.topic_cache[_id]
+    def _get_topic(cls, topic_id, channel=None, exchange_name=None, routing_key=None):
+        if topic_id in cls.topic_cache:
+            return cls.topic_cache[topic_id]
+        if (channel is None) or (exchange_name is None) or (routing_key is None):
+            raise Exception('missing parameter to set topic, couldnt find one in cache')
         topic = Topic(channel, exchange_name, routing_key)
-        cls.topic_cache[_id] = topic
+        cls.topic_cache[topic_id] = topic
         return topic
+
+    @classmethod
+    def get_topic(cls, entity_name, action):
+        topic_id = cls.get_topic_id(exchange_name=entity_name,
+                                    routing_key=action)
+

@@ -1,16 +1,17 @@
-from CaseBonita.Infrastructure.Consts import RABBIT_MQ_HOST
-from CaseBonita.Infrastructure.Messaging.Factory import ChannelFactory, TopicFactory
+import json
+
+from CaseBonita.Data.Consts import PlatformName
+from CaseBonita.Infrastructure.Consts import RABBIT_MQ_HOST, EntityNames, Actions
+from CaseBonita.Infrastructure.Messaging.Channel.Factory import ChannelFactory
+from CaseBonita.Infrastructure.Messaging.Topic.Factory import TopicFactory
 
 if __name__ == '__main__':
-    channel = ChannelFactory.get_channel(host=RABBIT_MQ_HOST)
-    queue_name = 'test_queue'
-    exchange_name = 'try'
-    routing_key = 'all.me'
-    exchange_type = 'topic'
-    channel.decalre_queue(queue_name=queue_name)
-    channel.declare_exchange(exchange_name=exchange_name,
-                         exchange_type=exchange_type)
-    channel.bind_queue(exchange_name=exchange_name, queue_name=queue_name,
-                       binding_key=routing_key)
-    topic = TopicFactory.get_topic(channel, exchange_name, routing_key=routing_key)
-    topic.publish('Test Success!')
+    entity_name = EntityNames.PLAYLIST_DOWNLOADER
+    action = Actions.REQUESTED
+    channel = ChannelFactory.get_channel_handler(entity_name, action)
+    topic = TopicFactory.get_topic(entity_name, action)
+    msg = {
+        'source_url': "https://music.apple.com/il/playlist/shiras-18th-birthday/pl.u-9N9L24LIx3DZ3K0",
+        'source_platform': PlatformName.APPLE_MUSIC
+    }
+    topic.publish(msg)
