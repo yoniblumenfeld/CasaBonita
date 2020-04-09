@@ -25,6 +25,7 @@ class PlaylistDownloaderHandler(BaseServiceHandler):
         playlist = handler(source_url, source_platform).download_playlist()
         download_finished_topic = TopicFactory.get_topic(entity_name=EntityNames.PLAYLIST_DOWNLOADER,
                                                          action=Actions.FINISHED)
+        # TODO: add writing to db
         finished_msg = {
             'event_name': EventNames.PLAYLIST_DOWNLOAD_FINISHED
         }
