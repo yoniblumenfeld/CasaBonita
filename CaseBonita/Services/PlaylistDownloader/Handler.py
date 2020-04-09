@@ -1,14 +1,15 @@
-import json
-
-from CaseBonita.Infrastructure.Consts import EntityNames, EventNames
+from CaseBonita.Infrastructure.Consts import EntityNames, EventNames, Actions
+from CaseBonita.Infrastructure.Messaging.Queue.Factory import QueueFactory
+from CaseBonita.Infrastructure.Messaging.Topic.Factory import TopicFactory
 from CaseBonita.Infrastructure.ServiceHandler import BaseServiceHandler
 from CaseBonita.Services.PlaylistDownloader.Factory import DownloaderFactory
 
 
 class PlaylistDownloaderHandler(BaseServiceHandler):
     @classmethod
-    def get_entity_name(cls):
-        return EntityNames.PLAYLIST_DOWNLOADER
+    def get_service_queues(cls):
+        queues = [QueueFactory.get_queue(entity_name=EntityNames.PLAYLIST_DOWNLOADER, action=Actions.REQUESTED)]
+        return queues
 
     @classmethod
     def _process_msg(cls, msg):
@@ -22,5 +23,11 @@ class PlaylistDownloaderHandler(BaseServiceHandler):
         source_platform = msg['source_platform']
         handler = DownloaderFactory.get_handler(source_platform)
         playlist = handler(source_url, source_platform).download_playlist()
+        download_finished_topic = TopicFactory.get_topic(entity_name=EntityNames.PLAYLIST_DOWNLOADER,
+                                                         action=Actions.FINISHED)
+        finished_msg = {
+            'event_name': EventNames.PLAYLIST_DOWNLOAD_FINISHED
+        }
+        download_finished_topic.publish(finished_msg)
         print('finished downloading playlist, printing results')
         print(playlist)

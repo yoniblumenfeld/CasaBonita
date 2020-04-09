@@ -1,23 +1,20 @@
 import json
 
-from CaseBonita.Infrastructure.Messaging.Queue.Factory import QueueFactory
-
 
 class BaseServiceHandler(object):
     @classmethod
-    def get_entity_name(cls):
+    def get_service_queues(cls):
         """
-        :rtype: str: entity name
+        :rtype: list: list of queues to listen to
         """
         raise NotImplementedError
 
     @classmethod
-    def _listen_to_entity_queues(cls):
+    def _listen_to_queues(cls):
         """
         This method uses the entity name configured for the service handler, and listens the queues relevant to it.
         """
-        entity_name = cls.get_entity_name()
-        queues = QueueFactory.get_entity_queues(entity_name)
+        queues = cls.get_service_queues()
         for queue in queues:
             queue.consume(cls.process_messages)
 
@@ -36,4 +33,4 @@ class BaseServiceHandler(object):
 
     @classmethod
     def run(cls):
-        cls._listen_to_entity_queues()
+        cls._listen_to_queues()
