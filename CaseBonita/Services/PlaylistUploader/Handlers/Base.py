@@ -11,7 +11,10 @@ class BaseUploaderHandler:
         self.user_credentials = user_credentials
         self.driver = webdriver.Chrome(executable_path=CHROMEDRIVER)
 
-    def connect_to_user(self):
+    def connect_to_user(self, *args, **kwargs):
+        """
+        Use of kw/args is due to every platform may require different parameters to connect.
+        """
         pass
 
     def create_playlist(self):
@@ -43,12 +46,6 @@ class BaseSelniumUploader(BaseUploaderHandler):
     def create_playlist(self):
         pass
 
-    def write_songs_to_playlist(self):
-        pass
-
-    def check_all_songs_was_inserted(self):
-        pass
-
 
 class BaseAPIUploader(BaseUploaderHandler):
     """
@@ -61,18 +58,9 @@ class BaseAPIUploader(BaseUploaderHandler):
     def create_developer_credentials(self):
         pass
 
-    def connect_to_user(self):
-        pass
-
     def create_playlist(self, **kwargs):
         """
         Implementation depends as at least the spotipy lib allows us to create a new playlist without the need to
         separate creation and writing.
         """
-        pass
-
-    def write_songs_to_playlist(self):
-        pass
-
-    def check_all_songs_was_inserted(self):
         pass
