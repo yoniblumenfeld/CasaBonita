@@ -1,3 +1,4 @@
+from CaseBonita.Infrastructure.Consts import Actions
 from CaseBonita.Infrastructure.Messaging.Channel.Factory import ChannelFactory
 from CaseBonita.Infrastructure.Messaging.Queue.Handler import QueueHandler
 from CaseBonita.Utils.ClassUtils import get_class_upper_variables
@@ -11,6 +12,14 @@ class QueueFactory(object):
         identifier = (entity_name, action)
         queue = QueueHandler(entity_name, action)
         cls._queues[identifier] = queue
+
+    @classmethod
+    def get_entity_queues(cls, entity_name):
+        actions = get_class_upper_variables(Actions)
+        queues = []
+        for action in actions:
+            queues.append(cls.get_queue(entity_name, action))
+        return queues
 
     @classmethod
     def get_queue(cls, entity_name, action):

@@ -12,6 +12,5 @@ class ChannelFactory(object):
         if channel is None:
             connection = ConnectionFactory.get_connection_handler(action)
             channel = ChannelHandler(connection, entity_name)
-        channel = channel
         cls._channels[identifier] = channel
         return channel
