@@ -1,3 +1,5 @@
+import json
+
 from CaseBonita.Infrastructure.Messaging.Queue.Factory import QueueFactory
 
 
@@ -21,7 +23,7 @@ class BaseServiceHandler(object):
 
     @classmethod
     def process_messages(cls, ch, method, properties, body):
-        cls._process_msg(body)
+        cls._process_msg(json.loads(body))
 
     @classmethod
     def _process_msg(cls, msg):

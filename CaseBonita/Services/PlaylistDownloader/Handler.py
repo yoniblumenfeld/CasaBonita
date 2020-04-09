@@ -12,7 +12,6 @@ class PlaylistDownloaderHandler(BaseServiceHandler):
 
     @classmethod
     def _process_msg(cls, msg):
-        msg = json.loads(msg)
         event_name = msg['event_name']
         if event_name == EventNames.PLAYLIST_DOWNLOAD_REQUESTED:
             cls.handle_download_playlist(msg)
