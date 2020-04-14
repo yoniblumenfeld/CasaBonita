@@ -1,19 +1,11 @@
-#!/usr/bin/env python
-import pika
+from CaseBonita.Infrastructure.Consts import RABBIT_MQ_HOST, EntityNames, Actions
+from CaseBonita.Infrastructure.Messaging.Queue.Factory import QueueFactory
 
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='localhost'))
-channel = connection.channel()
+if __name__ == '__main__':
+    entity_name = EntityNames.PLAYLIST_DOWNLOADER
+    action = Actions.REQUESTED
+    queue = QueueFactory.get_queue(entity_name, action)
+    def callback(ch, method, properties, body):
+        print(" [x] %r:%r" % (method.routing_key, body))
+    queue.consume(callback)
 
-channel.queue_declare(queue='hello')
-
-
-def callback(ch, method, properties, body):
-    print(" [x] Received %r" % body)
-
-
-channel.basic_consume(
-    queue='hello', on_message_callback=callback, auto_ack=True)
-
-print(' [*] Waiting for messages. To exit press CTRL+C')
-channel.start_consuming()
