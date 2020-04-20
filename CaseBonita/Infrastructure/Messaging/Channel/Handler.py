@@ -8,7 +8,7 @@ class ChannelHandler(object):
         :param ConnectionHandler connection:
         """
         self._connection = connection.get_connection()
-        self._channel = None # lazy init
+        self._channel = None  # lazy init
         self._exchange_name = entity_name
         self._queues = queues_list or [f'{entity_name}_{action}' for action in get_class_upper_variables(Actions)]
 
@@ -32,7 +32,7 @@ class ChannelHandler(object):
             self.add_queue(queue, force=True)
 
     def add_queue(self, queue, force=False):
-        if not force: #  Force occurs when channel was restarted or flushed and has to be recreated with appropriate queues
+        if not force:  # Force occurs when channel was restarted or flushed
             if queue in self._queues:
                 return
         if queue not in self._queues:

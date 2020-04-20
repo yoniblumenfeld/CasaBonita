@@ -5,7 +5,6 @@ class PlatformName(object):
 
 
 CHROMEDRIVER = "/home/yovel/PycharmProjects/chromedriver"
-
 APPLEMUSIC_LOGIN_PAGE = 'https://music.apple.com/us/artist/login/439834157'
 
 
@@ -26,3 +25,19 @@ ID = 'id'
 OWNER = 'owner'
 NAME = 'name'
 ITEMS = 'items'
+
+
+class MongoCollections(object):
+    PLAYLISTS = 'playlists'
+
+
+class EventFields(object):
+    EVENT_NAME = 'event_name'
+    SOURCE_URL = 'source_url'
+    SOURCE_PLATFORM = 'source_platform'
+
+
+PLAYLIST = 'playlist'
+PLATFORM = 'platform'
+PLAYLIST_URL = 'playlist_url'
+TIMESTAMP = 'timestamp'
