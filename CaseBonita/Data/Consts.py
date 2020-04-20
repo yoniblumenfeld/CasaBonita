@@ -19,6 +19,7 @@ class Spotify(object):
 INDEX = 0
 
 TRACK = 'track'
+TITLE = 'title'
 ARTIST = 'artist'
 TRACK_ID = 'track_id'
 ID = 'id'

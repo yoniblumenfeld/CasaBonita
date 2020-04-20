@@ -10,3 +10,5 @@ LOCAL_SERVER = 'http://0.0.0.0:7000/'
 
 # Ask for user credential.
 SPOTIFY_USER_ACCESS = f"https://accounts.spotify.com/authorize?client_id={CLIENT_ID}&redirect_uri={LOCAL_SERVER}&scope=user-read-private%20user-read-email&response_type=token&state=123"
+
+SCOPE = 'playlist-modify-private'

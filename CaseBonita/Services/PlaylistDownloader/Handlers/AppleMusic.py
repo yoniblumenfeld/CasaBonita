@@ -1,5 +1,6 @@
 import bs4
 
+from CaseBonita.Data.Consts import TITLE, ARTIST
 from CaseBonita.Services.PlaylistDownloader.Handlers.Base import ScraperBaseDownloaderHandler
 
 
@@ -18,8 +19,8 @@ class AppleMusicDownloaderHandler(ScraperBaseDownloaderHandler):
         artist = title_artist.find('a',
                                    class_="table__row__link table__row__link--secondary")
         result = {
-            'title': title.text.strip(),
-            'artist': artist.text.strip(),
+            TITLE: title.text.strip(),
+            ARTIST: artist.text.strip(),
         }
         return result
 
