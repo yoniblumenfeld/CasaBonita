@@ -1,10 +1,10 @@
 from CaseBonita.Data.Consts import PlatformName
-from CaseBonita.Services.PlaylistUploader.Handlers.Spotify import SpotifyUploaderHandler
+from CaseBonita.Services.PlaylistUploader.Handlers.Spotify import SpotifyUploadHandler
 
 
 class UploaderFactory(object):
     handlers = {
-        PlatformName.SPOTIFY: SpotifyUploaderHandler,
+        PlatformName.SPOTIFY: SpotifyUploadHandler,
     }
 
     @classmethod
