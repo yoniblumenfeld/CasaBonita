@@ -1,37 +1,35 @@
 from spotipy import Spotify, util
 
-from CaseBonita.Data.Consts import ITEMS, NAME, OWNER, ID, ARTIST, TRACK, PlatformName
+from CaseBonita.Data.Consts import ITEMS, NAME, OWNER, ID, ARTIST, TRACK, PlatformName, SPOTIFY_ACCESS_SCOPE
 from CaseBonita.Services.ManagementLayer.PlaylistsManager import PlaylistsDbManagement
-from CaseBonita.Services.PlaylistUploader.Handlers.Base import BaseAPIUploader
-from CaseBonita.Services.PlaylistUploader.Handlers.Consts import SCOPE, CLIENT_ID, CLIENT_SECRET
+from CaseBonita.Services.PlaylistUploader.Handlers.Consts import CLIENT_ID, CLIENT_SECRET
 from CaseBonita.Utils.RequestUtils import retry_request
 
 
-class SpotifyUploadHandler(BaseAPIUploader):
+class SpotifyUploadHandler():
     def __init__(self, user_name, _platform=PlatformName.SPOTIFY):
-        super().__init__(_platform)
         self.user_name = user_name
-        self.spotify = self.set_spotify_client(self.set_access_token())
+        self.spotify = self.get_access_to_user()
 
     # development only
-    LOCAL_SERVER = 'http://0.0.0.0:7000'
+    LOCAL_SERVER = 'http://0.0.0.0:7000/'
 
     access_token = None
 
-    def set_access_token(self):
+    def get_access_to_user(self):
         """
         This method uses spotipy's client to connect to a user.
         """
-        token = util.prompt_for_user_token(self.user_name,
-                                           scope=SCOPE,
-                                           client_id=CLIENT_ID,
-                                           client_secret=CLIENT_SECRET,
-                                           redirect_uri=self.LOCAL_SERVER)
-        return token
-
-    def set_spotify_client(self, token):
-        self.spotify = Spotify(token)
-        return self.spotify
+        token = util.prompt_for_user_token(
+            client_secret=CLIENT_SECRET,
+            client_id=CLIENT_ID,
+            username=self.user_name,
+            scope=SPOTIFY_ACCESS_SCOPE,
+            redirect_uri='http://0.0.0.0:7000/'
+        )
+        if token:
+            self.spotify = Spotify(auth=token)
+            return self.spotify
 
     def get_tracks_id(self, song):
         artist = song[0]
@@ -88,7 +86,7 @@ class SpotifyUploadHandler(BaseAPIUploader):
 
     def run(self, username, playlist_name, playlist_url):
         handler = SpotifyUploadHandler(user_name=username)
-        handler.set_access_token()
+        handler.get_access_to_user()
         handler.insert_new_playlist(playlist_name=playlist_name)
         handler.get_playlist_id(playlist_name=playlist_name)
         handler.write_songs_to_playlist(songs_id=self.get_playlist_tracks(playlist_url=playlist_url))
