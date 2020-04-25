@@ -24,7 +24,7 @@ class SpotifyConnector:
             token = prompt_for_user_token(
                 client_secret=Spotify.CLIENT_SECRET,
                 client_id=Spotify.CLIENT_ID,
-                username=user_name,
+                username=cls.username,
                 scope=Spotify.SPOTIFY_ACCESS_SCOPE,
                 redirect_uri='http://0.0.0.0:7000/'
             )
