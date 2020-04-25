@@ -42,3 +42,5 @@ PLAYLIST = 'playlist'
 PLATFORM = 'platform'
 PLAYLIST_URL = 'playlist_url'
 TIMESTAMP = 'timestamp'
+
+SPOTIFY_ACCESS_SCOPE = 'playlist-modify-private'

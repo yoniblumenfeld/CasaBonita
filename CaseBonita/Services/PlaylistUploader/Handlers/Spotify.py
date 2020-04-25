@@ -1,54 +1,53 @@
-from spotipy import Spotify
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy import Spotify, util
 
-from CaseBonita.Data.Consts import ARTIST, TRACK, ITEMS, NAME, OWNER, ID, TRACK_ID
-from CaseBonita.Services.PlaylistUploader.Handlers.Base import BaseAPIUploader
-from CaseBonita.Services.PlaylistUploader.Handlers.Consts import CLIENT_ID, CLIENT_SECRET, LOCAL_SERVER, SCOPE
+from CaseBonita.Data.Consts import ITEMS, NAME, OWNER, ID, ARTIST, TRACK, PlatformName, SPOTIFY_ACCESS_SCOPE
+from CaseBonita.Services.ManagementLayer.PlaylistsManager import PlaylistsDbManagement
+from CaseBonita.Services.PlaylistUploader.Handlers.Consts import CLIENT_ID, CLIENT_SECRET
 from CaseBonita.Utils.RequestUtils import retry_request
 
 
-class UploadToSpotify(BaseAPIUploader):
-    def __init__(self, _songs_json_file, user_name):
-        super(BaseAPIUploader, self).__init__(_songs_json_file)
-        self.spotify = Spotify(auth=self.connect_spotify_api())
+class SpotifyUploadHandler():
+    def __init__(self, user_name, _platform=PlatformName.SPOTIFY):
         self.user_name = user_name
+        self.spotify = self.get_access_to_user()
 
+    # development only
     LOCAL_SERVER = 'http://0.0.0.0:7000/'
+
     access_token = None
 
-    def connect_spotify_api(self):
+    def get_access_to_user(self):
         """
         This method uses spotipy's client to connect to a user.
         """
-        auth = SpotifyOAuth(client_secret=CLIENT_SECRET,
-                            client_id=CLIENT_ID,
-                            username=self.user_name,
-                            scope=SCOPE,
-                            redirect_uri=LOCAL_SERVER
-                            )
-        return auth
+        token = util.prompt_for_user_token(
+            client_secret=CLIENT_SECRET,
+            client_id=CLIENT_ID,
+            username=self.user_name,
+            scope=SPOTIFY_ACCESS_SCOPE,
+            redirect_uri='http://0.0.0.0:7000/'
+        )
+        if token:
+            self.spotify = Spotify(auth=token)
+            return self.spotify
 
-    def set_access_token(self):
-        """
-        This method connects checks if an access token exists in cache or receives a new one from spotify.
-        :returns self.access_token str:
-        """
-        self.access_token = self.connect_spotify_api().get_access_token(as_dict=False)
-        return self.access_token
+    def get_tracks_id(self, song):
+        artist = song[0]
+        track = song[1]
+        track_id = self.spotify.search(q=ARTIST + artist + TRACK + track, type=TRACK)
+        return track_id
 
-    def get_tracks_id(self, artist, track):
-        """
-        get's the given track track id, to be ran on every song in the json file.
-        """
-        track_id = self.spotify.search(q=f'{ARTIST}:' + artist + f' {TRACK}:' + track, type='track')
-        self.songs_json_file = self.songs_json_file.update('track_id':track_id)
-        return self.songs_json_file
+    def get_playlist_tracks(self, playlist_url):
+        playlist = PlaylistsDbManagement.find_playlist(playlist_url=playlist_url)
+        tracks_id = [self.get_tracks_id(song) for song in playlist]
+        return tracks_id
 
     @retry_request(total_retries=4)
     def insert_new_playlist(self, playlist_name):
         """
         Inserts a new playlist at the user's account.
         """
+        print(self.user_name)
         playlist = self.spotify.user_playlist_create(user=self.user_name, name=playlist_name)
         return playlist, playlist_name
 
@@ -67,15 +66,37 @@ class UploadToSpotify(BaseAPIUploader):
         except KeyError('Was not able to match given playlist names to existing ones, please check it.') as e:
             print(e)
 
-    def insert_songs_to_playlist(self):
+    def write_songs_to_playlist(self, songs_id):
         """
         This method initiates the insert new playlist and takes the given name from it.
         it then lists all the tracks ids and uploads them to the playlist.
         """
-        playlist, playlist_name = self.insert_new_playlist()
-        tracks_ids_list = list(self.songs_json_file[TRACK_ID])
-        upload_songs_to_playlist = self.spotify.user_playlist_add_tracks(user=self.user_name,
-                                                                         tracks=tracks_ids_list,
-                                                                         playlist_id=self.get_playlist_id(playlist_name)
-                                                                         )
-        return upload_songs_to_playlist
+
+        playlist, playlist_name = self.insert_new_playlist(playlist_name='yo')
+        print(playlist_name)
+        try:
+            upload_songs_to_playlist = self.spotify.user_playlist_add_tracks(user=self.user_name,
+                                                                             tracks=songs_id,
+                                                                             playlist_id=self.get_playlist_id(
+                                                                                 playlist_name)
+                                                                             )
+            return upload_songs_to_playlist
+        except ConnectionError as e:
+            print(e)
+
+    def run(self, username, playlist_name, playlist_url):
+        handler = SpotifyUploadHandler(user_name=username)
+        handler.get_access_to_user()
+        handler.insert_new_playlist(playlist_name=playlist_name)
+        handler.get_playlist_id(playlist_name=playlist_name)
+        handler.write_songs_to_playlist(songs_id=self.get_playlist_tracks(playlist_url=playlist_url))
+
+
+if __name__ == '__main__':
+    username = 'oa7fxnn3xwxveug6000igp0v6'
+    songs_id = ['7xGfFoTpQ2E7fRF5lN10tr']
+    source_url = "https://music.apple.com/il/playlist/shiras-18th-birthday/pl.u-9N9L24LIx3DZ3K0"
+    handler = SpotifyUploadHandler(user_name=username)
+    handler.run(username=username,
+                playlist_name='yo',
+                playlist_url=source_url)

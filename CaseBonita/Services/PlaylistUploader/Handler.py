@@ -20,9 +20,12 @@ class PlaylistUploaderHandler(BaseServiceHandler):
 
     @classmethod
     def handle_upload_playlist(cls, msg):
+        username = 'oa7fxnn3xwxveug6000igp0v6'
+        songs_id = ['7xGfFoTpQ2E7fRF5lN10tr']
         destination_platform = msg[EventFields.DESTINATION_PLATFORM]
         handler = UploaderFactory.get_handler(destination_platform)
-        upload_playlist = handler(destination_platform).upload_playlist()
+        upload_playlist = handler(destination_platform).write_songs_to_playlist(username=username,
+                                                                                songs_id=songs_id)
         upload_finished_topic = TopicFactory.get_topic(entity_name=EntityNames.PLAYLIST_UPLOADER,
                                                        action=Actions.FINISHED)
         finished_msg = {
@@ -30,3 +33,8 @@ class PlaylistUploaderHandler(BaseServiceHandler):
         }
         upload_finished_topic.publish(finished_msg)
         print('playlist upload is completed')
+        print(upload_playlist)
+
+
+if __name__ == '__main__':
+    PlaylistUploaderHandler.run()
