@@ -58,7 +58,8 @@ class SpotifyConnector:
         user_playlists = cls.spotify.user_playlists(limit=50, user=cls.username)
         try:
             # Showing off some beasty list comprehension.
-            playlist_id = [playlist[OWNER][ID] for playlist in user_playlists[ITEMS] if playlist_name in playlist[NAME]]
+            playlist_id = [playlist[OWNER][ID] for playlist in user_playlists[ITEMS] if
+                           playlist_name.lower() in playlist[NAME].lower()]
             return playlist_id
         except KeyError('Was not able to match given playlist names to existing ones, please check it.') as e:
             print(e)
