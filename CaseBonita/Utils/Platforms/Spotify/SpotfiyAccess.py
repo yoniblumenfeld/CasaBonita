@@ -1,8 +1,8 @@
-# A lot more explicit to call it like this, recommend to keep as project convention.
+# A lot more explicit to call it like this, I recommend to keep as a project convention.
 from spotipy import Spotify as SpotifyApiClient
-from spotipy.util import prompt_for_user_token
+from spotipy import prompt_for_user_token
 
-from CaseBonita.Data.Consts import Spotify, ITEMS, NAME, OWNER, ID
+from CaseBonita.Data.Consts import Spotify, ITEMS, NAME, OWNER, ID, ARTIST, TRACK
 
 
 class SpotifyConnector:
@@ -11,37 +11,22 @@ class SpotifyConnector:
     """
     username = None
     spotify = None
+    LOCAL_SERVER = 'http://127.0.0.1:7000/'
 
     @classmethod
-    def get_access_to_user(cls, user_name):
+    def return_auth_client(cls, user_name):
         """
         This method opens a prompt for user to connect to spotify.
         If authorized by the user, they'll be redirected to a predefined redirected URI with an authentication token
         attached to it.
         :rtype str: the striped authentication token.
         """
-        try:
-            token = prompt_for_user_token(
-                client_secret=Spotify.CLIENT_SECRET,
-                client_id=Spotify.CLIENT_ID,
-                username=cls.username,
-                scope=Spotify.SPOTIFY_ACCESS_SCOPE,
-                redirect_uri='http://0.0.0.0:7000/'
-            )
-            # TODO: Find a way to pull the URL the user is redirected to.
-            #       Some Rodo magical selenium touch would do the trick.
-            auth_token = url.split("?code=")[1].split("&")[0]
-            return auth_token
-        except ConnectionError('was not able to retrieve auth token') as e:
-            print(e)
-
-    @classmethod
-    def initiate_api_handler(cls, token):
-        """
-        Initiate a spotipy.Spotify object with the user's auth token, This object is used to interact with spotify's API
-        and modify user's private data.
-        :rtype Spotify Client object.
-        """
+        cls.username = user_name
+        token = prompt_for_user_token(client_id=Spotify.CLIENT_ID,
+                                      client_secret=Spotify.CLIENT_SECRET,
+                                      redirect_uri=cls.LOCAL_SERVER,
+                                      scope=Spotify.SPOTIFY_ACCESS_SCOPE,
+                                      username=cls.username)
 
         cls.spotify = SpotifyApiClient(auth=token)
         return cls.spotify
@@ -64,11 +49,11 @@ class SpotifyConnector:
         except KeyError('Was not able to match given playlist names to existing ones, please check it.') as e:
             print(e)
 
-    @classmethod
-    def generate_songs_id_list(cls):
-        #  TODO: as we know, in order to add songs to playlist we need the songs ids.
-        #        Maybe we should put here?
-        pass
+    def get_tracks_id(self, song):
+        artist = song[0]
+        track = song[1]
+        track_id = self.spotify.search(q=ARTIST + artist + TRACK + track, type=TRACK)
+        return track_id
 
     @classmethod
     def write_auth_token_to_db(cls):
@@ -77,8 +62,3 @@ class SpotifyConnector:
         #  Maybe wed'e like to send to the db? in the case of connection disruption or user returning in under an hour
         #  we could just call it instead of reinstating the process.
         pass
-
-    @classmethod
-    def run(cls, user_name):
-        spotify_api_client = cls.initiate_api_handler(cls.get_access_to_user(user_name=user_name))
-        return spotify_api_client
