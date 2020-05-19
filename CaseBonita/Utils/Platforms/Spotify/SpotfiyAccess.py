@@ -42,7 +42,6 @@ class SpotifyConnector:
         # upload handler)
         user_playlists = cls.spotify.user_playlists(limit=50, user=cls.username)
         try:
-            # Showing off some beasty list comprehension.
             playlist_id = [playlist[OWNER][ID] for playlist in user_playlists[ITEMS] if
                            playlist_name.lower() in playlist[NAME].lower()]
             return playlist_id
@@ -62,3 +61,4 @@ class SpotifyConnector:
         #  Maybe wed'e like to send to the db? in the case of connection disruption or user returning in under an hour
         #  we could just call it instead of reinstating the process.
         pass
+

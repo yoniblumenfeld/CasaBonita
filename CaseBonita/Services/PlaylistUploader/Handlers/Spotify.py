@@ -13,7 +13,6 @@ class SpotifyUploadHandler(SpotifyConnector):
     LOCAL_SERVER = 'http://0.0.0.0:7000/'
     access_token = None
 
-
     @retry_request(total_retries=4)
     def insert_new_playlist(self, playlist_name):
         """
@@ -27,19 +26,19 @@ class SpotifyUploadHandler(SpotifyConnector):
         playlist_id = playlist[ID]
         return playlist_id
 
-    def write_songs_to_playlist(self, songs_id):
+    def write_songs_to_playlist(self, songs_id, playlist_name):
         """
         This method initiates the insert new playlist and takes the given name from it.
         it then lists all the tracks ids and uploads them to the playlist.
         """
 
-        playlist_id = self.get_created_playlist_id(playlist_name='yo')
+        playlist_id = self.get_created_playlist_id(playlist_name=playlist_name)
         try:
             upload_songs_to_playlist = self.spotify.user_playlist_add_tracks(user=self.user_name,
                                                                              tracks=songs_id,
                                                                              playlist_id=playlist_id
                                                                              )
-            print(upload_songs_to_playlist)
+            print(f'{playlist_name} Was inserted successfully')
         except ConnectionError as e:
             print(e)
 
@@ -47,7 +46,7 @@ class SpotifyUploadHandler(SpotifyConnector):
         handler = SpotifyUploadHandler(user_name=self.user_name)
         handler.insert_new_playlist(playlist_name=playlist_name)
         handler.get_playlist_id(playlist_name=playlist_name)
-        handler.write_songs_to_playlist(songs_id=SpotifyTestCase.SONGS_ID_LIST)
+        handler.write_songs_to_playlist(songs_id=SpotifyTestCase.SONGS_ID_LIST, playlist_name=playlist_name)
 
 
 if __name__ == '__main__':
