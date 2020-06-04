@@ -37,6 +37,9 @@ class EventFields(object):
     EVENT_NAME = 'event_name'
     SOURCE_URL = 'source_url'
     SOURCE_PLATFORM = 'source_platform'
+    USER_NAME = 'user_name'
+    PLAYLIST_URL = 'playlist_url'
+    DESTINATION_PLATFORM = 'destination_platform'
 
 
 PLAYLIST = 'playlist'

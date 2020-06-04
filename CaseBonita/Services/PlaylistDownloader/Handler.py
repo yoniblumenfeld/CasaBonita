@@ -25,8 +25,6 @@ class PlaylistDownloaderHandler(BaseServiceHandler):
         source_platform = msg[EventFields.SOURCE_PLATFORM]
         handler = DownloaderFactory.get_handler(source_platform)
         playlist = handler(source_url, source_platform).download_playlist()
-        if source_platform == PlatformName.SPOTIFY:
-            add_tracks_ids(playlist)
         PlaylistsDbManagement.insert_playlist_to_db(playlist, source_platform, source_url)
         download_finished_topic = TopicFactory.get_topic(entity_name=EntityNames.PLAYLIST_DOWNLOADER,
                                                          action=Actions.FINISHED)
